@@ -99,7 +99,7 @@ def check(d):
         if not re.search(rf"^##\s+{heading}(?!\w)", body, re.M | re.I):
             errors.append(f"SKILL.md: no '## {heading}' section ({why})")
     for span in re.findall(r"`((?:references|assets|scripts)/[^`]+)`", body):
-        ref = span.split()[0]  # `scripts/x.sh --flag` checks scripts/x.sh
+        ref = span.split()[0].split("#", 1)[0]  # `scripts/x.sh --flag`, `x.md#sec`
         if "<" in ref or ">" in ref:
             continue  # a pointer such as <repo>/scripts/x.py, not a file here
         if "[" in ref:
@@ -130,6 +130,9 @@ def main(argv):
         print(f"ERROR {e}")
     if not errors:
         runs = d / "runs"
+        if runs.exists() and not runs.is_dir():
+            print(f"ERROR {runs} exists and is not a directory")
+            return 1
         if not runs.exists():
             runs.mkdir()
             print(f"created {runs}/")

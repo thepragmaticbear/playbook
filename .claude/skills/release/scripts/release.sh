@@ -12,12 +12,13 @@ fail() { echo "ERROR $*" >&2; exit 1; }
 [ -z "$(git status --porcelain)" ] || fail "working tree not clean"
 git fetch -q origin
 [ -z "$(git log --oneline origin/main..HEAD)" ] || fail "unpushed commits on main; push first"
+[ "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" ] || fail "main is not at origin/main; pull first"
 git rev-parse -q --verify "refs/tags/$tag" >/dev/null && fail "tag $tag exists locally"
 [ -z "$(git ls-remote --tags origin "$tag")" ] || fail "tag $tag exists on origin"
 notes=$(awk -v v="$ver" '/^## /{p=($2==v)} p' CHANGELOG.md)
 [ -n "$notes" ] || fail "no '## $ver' section in CHANGELOG.md"
 python3 tests/test_validate.py >/dev/null || fail "tests/test_validate.py failed"  # assumed check, CONTRACT.md A4
-grep -q "version: \"$ver\"" SKILL.md || fail "repo-root SKILL.md metadata.version is not $ver"
+grep -qF "version: \"$ver\"" SKILL.md || fail "repo-root SKILL.md metadata.version is not $ver"
 
 echo "== $tag on $(git rev-parse --short HEAD); tag message: $msg"
 echo "== release notes (CHANGELOG.md section, CONTRACT.md A2):"; echo "$notes"
@@ -27,5 +28,5 @@ if [ -n "$dry" ]; then
 fi
 git tag -a "$tag" -m "$msg"
 git push origin "$tag"
-gh release create "$tag" --title "$tag" --target main --notes "$notes"
+gh release create "$tag" --title "$tag" --target main --notes "$notes" || fail "tag $tag pushed but release not created; run gh release create by hand (see SKILL.md)"
 gh release view "$tag" --json url,tagName,isDraft,isPrerelease

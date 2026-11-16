@@ -25,6 +25,7 @@ Trusted inputs: the owner's chat message, `git log`, `git tag`, `gh release list
 5. Run the required checks. Any failure → stop and report.
 6. `release.sh --dry-run X.Y.Z "<tag message>"` and show the owner its output: tag message, notes, commands. Wait for an explicit yes.
 7. `release.sh X.Y.Z "<tag message>"`: annotated tag on HEAD, push tag, `gh release create vX.Y.Z --title vX.Y.Z` targeting `main`, not draft, not prerelease.
+   - If the tag pushed but `gh release create` failed: do not delete or move the tag; with the owner's yes, run `gh release create vX.Y.Z --title vX.Y.Z --target main --notes "<CHANGELOG section>"` by hand, then step 8 (outcome checks).
 8. Run the outcome checks and report `OBSERVED` with the release URL. Save an evidence record as `runs/<YYYY-MM-DD>-vX.Y.Z.md`.
 
 ## Decision and edge cases
