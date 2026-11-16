@@ -12,3 +12,8 @@ jobs:
           persist-credentials: false
       - name: Validator self-test
         run: python3 tests/test_validate.py
+      - name: Validate playbooks
+        run: |
+          python3 scripts/validate.py references/example/website-change-review
+          python3 scripts/validate.py .claude/skills/release
+          python3 scripts/validate.py .claude/skills/pressure-test

@@ -188,6 +188,23 @@ with tempfile.TemporaryDirectory() as t:  # outside any repo: no "stage with" li
             assert main(["validate.py", str(d)]) == 0
         assert "stage with" not in out.getvalue(), out.getvalue()
 
+with tempfile.TemporaryDirectory() as t:
+    skill = GOOD_SKILL.replace("`references/rules.md`", "`references/rules.md#intro`")
+    assert check(make(t, skill=skill)) == []
+
+with tempfile.TemporaryDirectory() as t:
+    skill = GOOD_SKILL.replace("`references/rules.md`", "`references/rules.md#intro`")
+    errs = check(make(t, skill=skill, refs=False))
+    assert any("does not exist" in e for e in errs), errs
+
+with tempfile.TemporaryDirectory() as t:
+    d = make(t)
+    (d / "runs").write_text("not a dir")
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out):
+        assert main(["validate.py", str(d)]) == 1
+    assert out.getvalue().strip() == f"ERROR {d / 'runs'} exists and is not a directory", out.getvalue()
+
 example = Path(__file__).resolve().parents[1] / "references" / "example" / "website-change-review"
 assert check(example) == [], check(example)
 
